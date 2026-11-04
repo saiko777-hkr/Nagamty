@@ -3,6 +3,7 @@
 
   const STORAGE_KEY = "naghamti-library-v1";
   const library = Array.isArray(window.MUSIC_LIBRARY) ? window.MUSIC_LIBRARY : [];
+  const RECENT_TRACK_LIMIT = 20;
   const tracks = library.map((track, index) => ({
     id: String(track.id || track.src || `${track.title || "track"}-${index}`),
     title: track.title || "أغنية بدون اسم",
@@ -24,6 +25,8 @@
   const toast = document.querySelector("#toast");
   const sortSelect = document.querySelector("#sort-select");
   const playlistList = document.querySelector("#playlist-list");
+  const menuToggle = document.querySelector("#menu-toggle");
+  const siteMenu = document.querySelector("#site-menu");
   const arabicDigits = new Intl.NumberFormat("ar");
   const knownTrackIds = new Set(tracks.map((track) => track.id));
   let state = loadState();
@@ -49,7 +52,7 @@
   }
 
   function loadState() {
-    const empty = { favorites: [], plays: {}, playlists: [] };
+    const empty = { favorites: [], plays: {}, playlists: [], recentTrackIds: [] };
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
       if (!saved || typeof saved !== "object") return empty;
@@ -72,6 +75,9 @@
                   ? [...new Set(playlist.trackIds.filter((id) => typeof id === "string" && knownTrackIds.has(id)))]
                   : []
               }))
+          : [],
+        recentTrackIds: Array.isArray(saved.recentTrackIds)
+          ? [...new Set(saved.recentTrackIds.filter((id) => typeof id === "string" && knownTrackIds.has(id)))].slice(0, RECENT_TRACK_LIMIT)
           : []
       };
     } catch {
@@ -97,6 +103,13 @@
     toast.classList.add("visible");
     window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => toast.classList.remove("visible"), 3200);
+  }
+
+  function closeSiteMenu(restoreFocus = false) {
+    siteMenu.hidden = true;
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "فتح القائمة");
+    if (restoreFocus) menuToggle.focus();
   }
 
   function formatTime(seconds) {
@@ -139,6 +152,9 @@
     if (sort === "title") result.sort((a, b) => a.title.localeCompare(b.title, "ar"));
     if (sort === "artist") result.sort((a, b) => a.artist.localeCompare(b.artist, "ar"));
     if (sort === "popular") result.sort((a, b) => (state.plays[b.id] || 0) - (state.plays[a.id] || 0));
+    if (activeCollection.type === "recent" && sort === "default") {
+      result.sort((a, b) => state.recentTrackIds.indexOf(a.id) - state.recentTrackIds.indexOf(b.id));
+    }
     if (activeCollection.type === "popular" && sort === "default") {
       result.sort((a, b) => (state.plays[b.id] || 0) - (state.plays[a.id] || 0));
     }
@@ -156,6 +172,7 @@
         activeCollection.type === "all" ||
         (activeCollection.type === "favorites" && state.favorites.includes(track.id)) ||
         (activeCollection.type === "popular" && (state.plays[track.id] || 0) > 0) ||
+        (activeCollection.type === "recent" && state.recentTrackIds.includes(track.id)) ||
         (activeCollection.type === "playlist" && Boolean(playlist?.trackIds.includes(track.id)));
       return matchesGenre && matchesQuery && matchesCollection;
     });
@@ -184,7 +201,8 @@
     const collections = [
       ["all-tracks", "all"],
       ["favorites-filter", "favorites"],
-      ["popular-filter", "popular"]
+      ["popular-filter", "popular"],
+      ["recent-filter", "recent"]
     ];
     collections.forEach(([id, type]) => {
       const button = document.querySelector(`#${id}`);
@@ -258,7 +276,7 @@
 
   function renderTracks() {
     const visibleTracks = getVisibleTracks();
-    const count = tracks.length;
+    const count = visibleTracks.length;
     document.querySelector("#track-count").textContent = `${arabicDigits.format(count)} ${count === 1 ? "أغنية" : "أغاني"}`;
     trackList.replaceChildren();
     visibleTracks.forEach((track) => {
@@ -360,6 +378,9 @@
     } else if (activeCollection.type === "favorites" && visibleTracks.length === 0 && !searchInput.value.trim()) {
       document.querySelector("#empty-title").textContent = "لسه مفيش أغاني مفضلة";
       document.querySelector("#empty-copy").textContent = "اضغط على علامة القلب جنب أي أغنية عشان تحفظها هنا على جهازك.";
+    } else if (activeCollection.type === "recent" && visibleTracks.length === 0 && !searchInput.value.trim()) {
+      document.querySelector("#empty-title").textContent = "لسه مفيش أغاني في سجل الاستماع";
+      document.querySelector("#empty-copy").textContent = "الأغاني اللي يبدأ تشغيلها هتظهر هنا، والسجل محفوظ على جهازك.";
     } else {
       document.querySelector("#empty-title").textContent = searchInput.value.trim() ? "مفيش نتائج للبحث ده" : "مفيش أغاني في الاختيار ده";
       document.querySelector("#empty-copy").textContent = searchInput.value.trim()
@@ -457,6 +478,24 @@
   document.querySelector("#all-tracks").addEventListener("click", () => selectCollection("all"));
   document.querySelector("#favorites-filter").addEventListener("click", () => selectCollection("favorites"));
   document.querySelector("#popular-filter").addEventListener("click", () => selectCollection("popular"));
+  document.querySelector("#recent-filter").addEventListener("click", () => selectCollection("recent"));
+  menuToggle.addEventListener("click", () => {
+    const shouldOpen = siteMenu.hidden;
+    siteMenu.hidden = !shouldOpen;
+    menuToggle.setAttribute("aria-expanded", String(shouldOpen));
+    menuToggle.setAttribute("aria-label", shouldOpen ? "إغلاق القائمة" : "فتح القائمة");
+  });
+  siteMenu.addEventListener("click", (event) => {
+    if (event.target.closest("a, button")) closeSiteMenu();
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!siteMenu.hidden && !siteMenu.contains(event.target) && !menuToggle.contains(event.target)) {
+      closeSiteMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !siteMenu.hidden) closeSiteMenu(true);
+  });
   document.querySelector("#create-playlist").addEventListener("click", openCreatePlaylist);
   document.querySelector("#create-playlist-form").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -550,10 +589,14 @@
     renderTracks();
   });
   audio.addEventListener("playing", () => {
-    if (!activeTrack || pendingPlayCountTrackId !== activeTrack.id) return;
-    state.plays[activeTrack.id] = (state.plays[activeTrack.id] || 0) + 1;
-    pendingPlayCountTrackId = "";
+    if (!activeTrack) return;
+    state.recentTrackIds = [activeTrack.id, ...state.recentTrackIds.filter((id) => id !== activeTrack.id)].slice(0, RECENT_TRACK_LIMIT);
+    if (pendingPlayCountTrackId === activeTrack.id) {
+      state.plays[activeTrack.id] = (state.plays[activeTrack.id] || 0) + 1;
+      pendingPlayCountTrackId = "";
+    }
     saveState();
+    renderCollectionControls();
     renderTracks();
   });
   audio.addEventListener("pause", () => {

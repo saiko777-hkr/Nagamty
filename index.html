@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#101019">
     <meta name="description" content="ابحث عن الأغاني في نغمتي، واستمع إليها أونلاين أو حمّلها على جهازك.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="نغمتي">
     <title>نغمتي — ابحث واسمع وحمّل</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -21,11 +26,38 @@
           </span>
           <span>نغمتي</span>
         </a>
-        <nav class="topbar-links" aria-label="القائمة الرئيسية">
-          <a class="nav-link active" href="#library">المكتبة</a>
-          <a class="nav-link" href="#about">عن نغمتي</a>
-        </nav>
-        <span class="library-badge"><span class="live-dot"></span> مكتبتك الموسيقية</span>
+        <div class="topbar-actions">
+          <button class="menu-toggle" id="menu-toggle" type="button" aria-label="فتح القائمة" aria-expanded="false" aria-controls="site-menu" title="القائمة">
+            <span></span><span></span><span></span>
+          </button>
+          <span class="library-badge"><span class="live-dot"></span> مكتبتك الموسيقية</span>
+          <nav class="site-menu glass" id="site-menu" aria-label="القائمة الرئيسية" hidden>
+            <div class="menu-section">
+              <span class="menu-heading">تصفح الموقع</span>
+              <a class="menu-link" href="#library"><span aria-hidden="true">⌕</span> مكتبة الأغاني</a>
+              <a class="menu-link" href="#playlists-panel"><span aria-hidden="true">☷</span> قوائم التشغيل</a>
+              <a class="menu-link" href="#about"><span aria-hidden="true">♪</span> عن نغمتي</a>
+            </div>
+            <div class="menu-section">
+              <span class="menu-heading">مكتبتك</span>
+              <div class="collection-menu" aria-label="أقسام الأغاني">
+                <button class="collection-link active" id="all-tracks" type="button" aria-pressed="true"><span aria-hidden="true">♫</span> كل الأغاني</button>
+                <button class="collection-link" id="favorites-filter" type="button" aria-pressed="false"><span aria-hidden="true">♥</span> المفضلة</button>
+                <button class="collection-link" id="popular-filter" type="button" aria-pressed="false"><span aria-hidden="true">↗</span> الأكثر استماعًا</button>
+                <button class="collection-link" id="recent-filter" type="button" aria-pressed="false"><span aria-hidden="true">◷</span> آخر ما سُمِع</button>
+              </div>
+            </div>
+            <div class="menu-section genre-menu">
+              <h3>الأنواع</h3>
+              <div class="filter-row" id="filter-row" aria-label="تصفية حسب النوع"></div>
+            </div>
+            <p class="local-data-note">المفضلة وسجل الاستماع محفوظان على جهاز الزائر فقط.</p>
+            <button class="install-app" id="install-app" type="button" aria-label="تثبيت نغمتي" title="تثبيت نغمتي">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>تثبيت التطبيق</span>
+            </button>
+          </nav>
+        </div>
       </header>
 
       <main>
@@ -70,46 +102,44 @@
             <span class="track-count" id="track-count">٠ أغنية</span>
           </div>
 
-          <div class="filter-row" id="filter-row" aria-label="تصفية حسب النوع"></div>
-          <div class="library-tools">
-            <div class="collection-filters" aria-label="عرض الأغاني">
-              <button class="filter-chip active" id="all-tracks" type="button" aria-pressed="true">كل الأغاني</button>
-              <button class="filter-chip" id="favorites-filter" type="button" aria-pressed="false">المفضلة</button>
-              <button class="filter-chip" id="popular-filter" type="button" aria-pressed="false">الأكثر استماعًا على جهازك</button>
-            </div>
-            <label class="sort-control" for="sort-select">ترتيب
-              <select id="sort-select">
-                <option value="default">الافتراضي</option>
-                <option value="title">اسم الأغنية</option>
-                <option value="artist">الفنان</option>
-                <option value="popular">الأكثر استماعًا على جهازك</option>
-              </select>
-            </label>
-          </div>
-          <p class="local-data-note">المفضلة ومرات الاستماع محفوظة على جهاز الزائر فقط، وليست أرقامًا مشتركة.</p>
-
-          <section class="playlists-panel glass" aria-labelledby="playlists-title">
-            <div class="playlists-heading">
-              <div>
-                <span class="section-kicker">اسمعها على ذوقك</span>
-                <h3 id="playlists-title">قوائم التشغيل</h3>
+          <div class="library-layout">
+            <div class="library-content">
+              <div class="library-tools">
+                <span class="library-prompt">اختار أغنيتك الجاية</span>
+                <label class="sort-control" for="sort-select">ترتيب
+                  <select id="sort-select">
+                    <option value="default">الافتراضي</option>
+                    <option value="title">اسم الأغنية</option>
+                    <option value="artist">الفنان</option>
+                    <option value="popular">الأكثر استماعًا على جهازك</option>
+                  </select>
+                </label>
               </div>
-              <button class="small-action" id="create-playlist" type="button">+ قائمة جديدة</button>
-            </div>
-            <div class="playlist-list" id="playlist-list"></div>
-          </section>
 
-          <div class="track-list" id="track-list" aria-live="polite"></div>
-          <div class="empty-state glass" id="empty-state">
-            <div class="empty-icon">
-              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <path d="M19 35V9l23-4v26" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-                <ellipse cx="12" cy="36" rx="7" ry="5" stroke="currentColor" stroke-width="2.4"/>
-                <ellipse cx="35" cy="31" rx="7" ry="5" stroke="currentColor" stroke-width="2.4"/>
-              </svg>
+              <section class="playlists-panel glass" id="playlists-panel" aria-labelledby="playlists-title">
+                <div class="playlists-heading">
+                  <div>
+                    <span class="section-kicker">اسمعها على ذوقك</span>
+                    <h3 id="playlists-title">قوائم التشغيل</h3>
+                  </div>
+                  <button class="small-action" id="create-playlist" type="button">+ قائمة جديدة</button>
+                </div>
+                <div class="playlist-list" id="playlist-list"></div>
+              </section>
+
+              <div class="track-list" id="track-list" aria-live="polite"></div>
+              <div class="empty-state glass" id="empty-state">
+                <div class="empty-icon">
+                  <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                    <path d="M19 35V9l23-4v26" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <ellipse cx="12" cy="36" rx="7" ry="5" stroke="currentColor" stroke-width="2.4"/>
+                    <ellipse cx="35" cy="31" rx="7" ry="5" stroke="currentColor" stroke-width="2.4"/>
+                  </svg>
+                </div>
+                <h3 id="empty-title">المكتبة لسه بتستعد</h3>
+                <p id="empty-copy">الأغاني الجديدة هتظهر هنا قريبًا. ارجع تاني واكتشف موسيقى على مزاجك.</p>
+              </div>
             </div>
-            <h3 id="empty-title">المكتبة لسه بتستعد</h3>
-            <p id="empty-copy">الأغاني الجديدة هتظهر هنا قريبًا. ارجع تاني واكتشف موسيقى على مزاجك.</p>
           </div>
         </section>
 
@@ -184,10 +214,20 @@
         </div>
       </form>
     </dialog>
+    <dialog class="app-dialog glass" id="install-help-dialog">
+      <form method="dialog">
+        <h2>ثبّت نغمتي على جهازك</h2>
+        <p id="install-help-copy"></p>
+        <div class="dialog-actions">
+          <button class="empty-action" type="submit">تمام</button>
+        </div>
+      </form>
+    </dialog>
     <audio id="audio" preload="metadata"></audio>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="songs.js"></script>
     <script src="app.js"></script>
+    <script src="pwa.js"></script>
   </body>
 </html>
