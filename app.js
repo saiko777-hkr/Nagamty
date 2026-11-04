@@ -185,7 +185,7 @@
     genres.forEach((genre) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `filter-chip${activeGenre === genre ? " active" : ""}`;
+      button.className = `filter-chip glass-card${activeGenre === genre ? " active" : ""}`;
       button.textContent = genre;
       button.setAttribute("aria-pressed", String(activeGenre === genre));
       button.addEventListener("click", () => {
@@ -231,7 +231,7 @@
       item.className = "playlist-item";
       const select = document.createElement("button");
       select.type = "button";
-      select.className = "filter-chip playlist-chip";
+      select.className = "filter-chip playlist-chip glass-card";
       select.dataset.playlistId = playlist.id;
       select.textContent = `${playlist.name} · ${arabicDigits.format(playlist.trackIds.length)}`;
       select.setAttribute("aria-pressed", String(activeCollection.type === "playlist" && activeCollection.id === playlist.id));
@@ -242,7 +242,7 @@
       });
       const remove = document.createElement("button");
       remove.type = "button";
-      remove.className = "playlist-remove";
+      remove.className = "playlist-remove glass-card";
       remove.textContent = "×";
       remove.title = `حذف قائمة ${playlist.name}`;
       remove.setAttribute("aria-label", `حذف قائمة ${playlist.name}`);
@@ -265,7 +265,7 @@
   function makeButton(className, label, icon, pressed, onClick) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = className;
+    button.className = `${className} glass-card`;
     button.setAttribute("aria-label", label);
     button.title = label;
     if (pressed !== undefined) button.setAttribute("aria-pressed", String(pressed));
@@ -352,7 +352,7 @@
         : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.8c0-.8.9-1.3 1.6-.9l9.1 5.6a1.7 1.7 0 0 1 0 2.9l-9.1 5.6c-.7.4-1.6-.1-1.6-.9V5.8Z"/></svg><span class="track-action-label">تشغيل</span>';
 
       const download = document.createElement("a");
-      download.className = "track-download";
+      download.className = "track-download glass-card";
       download.href = track.download || "#";
       download.download = getDownloadName(track);
       download.setAttribute("aria-label", `حمّل ${track.title}`);
